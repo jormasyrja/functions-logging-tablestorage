@@ -10,7 +10,7 @@ Using dependency injection provided in `Microsoft.Azure.Functions.Extensions`, a
 ```cs
 public override void Configure(IFunctionsHostBuilder builder)
 {
-    builder.AddSingleton<ILoggerProvider, TableStorageLoggerProvider>( _ => {
+    builder.Services.AddSingleton<ILoggerProvider, TableStorageLoggerProvider>( _ => {
         var connectionString = <your Storage account connection string>
         var tableName = <name of table to insert log rows>
         
