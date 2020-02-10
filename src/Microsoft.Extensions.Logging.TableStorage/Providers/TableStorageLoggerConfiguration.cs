@@ -8,44 +8,56 @@ namespace Microsoft.Extensions.Logging.TableStorage.Providers
         /// Storage Account connection string
         /// </summary>
         public string ConnectionString { get; }
+
         /// <summary>
         /// Table Storage table name used for logging. Will be created if it doesn't exist.
         /// </summary>
         public string TableName { get; }
 
         /// <summary>
-        /// Defines when Table Storage rows' partition keys roll over, based on UTC timestamp at the time of logging.
-        /// Defaults to <see cref="PartitionKeyRollOver.Day"/>
+        /// <see cref="DateTime"/> format to use as the partition key for inserted log rows. Default is <see cref="Constants.DefaultPartitionKeyDateTimeFormat"/>
         /// </summary>
-        public PartitionKeyRollOver RollOver { get; set; }
+        public string PartitionKeyDateTimeFormat { get; }
+
+        /// <summary>
+        /// How long should the log buffer wait until flush (write to Table Storage), if buffer is not full
+        /// </summary>
+        public int LogEventBufferTimeoutInSeconds { get; }
+        /// <summary>
+        /// Number of events to store in buffer before force flushing
+        /// </summary>
+        public int LogEventBufferSize { get; }
 
         /// <summary>
         /// Configuration object for <see cref="TableStorageLoggerProvider"/>.
         /// </summary>
         /// <param name="connectionString">Storage account connection string</param>
         /// <param name="tableName">Table name for inserting log rows</param>
-        /// <param name="partitionKeyRollOver">Rollover type for partitionKey, default is <see cref="PartitionKeyRollOver.Day"/>, which means that log rows are separated into one partition per day</param>
-        public TableStorageLoggerConfiguration(string connectionString, string tableName, PartitionKeyRollOver partitionKeyRollOver = PartitionKeyRollOver.Day)
+        /// <param name="partitionKeyDateTimeFormat"><see cref="DateTime"/> format to use as the partition key for inserted log rows. Default is <see cref="Constants.DefaultPartitionKeyDateTimeFormat"/></param>
+        /// <param name="logEventBufferTimeoutInSeconds">How long should the log buffer wait until flush (write to Table Storage), if buffer is not full</param>
+        /// <param name="logEventBufferSize">Number of events to store in buffer before force flushing</param>
+        public TableStorageLoggerConfiguration(
+            string connectionString,
+            string tableName,
+            string partitionKeyDateTimeFormat = Constants.DefaultPartitionKeyDateTimeFormat,
+            int logEventBufferTimeoutInSeconds = Constants.DefaultBufferTimeoutInSeconds,
+            int logEventBufferSize = Constants.DefaultBufferSize)
         {
             ConnectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             TableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
+            PartitionKeyDateTimeFormat = partitionKeyDateTimeFormat ?? throw new ArgumentNullException(nameof(partitionKeyDateTimeFormat));
 
-            RollOver = partitionKeyRollOver;
+            if (logEventBufferTimeoutInSeconds < 1)
+            {
+                throw new ArgumentException($"{nameof(logEventBufferTimeoutInSeconds)} must be greater than zero");
+            }
+            LogEventBufferTimeoutInSeconds = logEventBufferTimeoutInSeconds;
+
+            if (logEventBufferSize < 1 || logEventBufferSize > Constants.MaximumBufferSize)
+            {
+                throw new ArgumentException($"{nameof(logEventBufferSize)} must be greater than zero and less than {Constants.MaximumBufferSize}");
+            }
+            LogEventBufferSize = logEventBufferSize;
         }
-    }
-
-    /// <summary>
-    /// Defines when Table Storage rows' partition keys roll over
-    /// </summary>
-    public enum PartitionKeyRollOver
-    {
-        /// <summary>
-        /// yyyyMMdd, e.g. 20201231 (December 12th 2020)
-        /// </summary>
-        Day,
-        /// <summary>
-        /// yyyyMMdd-HH, e.g. 20201231-23 (December 12th 2020, 23:00)
-        /// </summary>
-        Hour
     }
 }
