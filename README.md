@@ -1,6 +1,6 @@
 # Logger provider for Azure Table Storage
 
-This project contains a simple implementations of `ILoggerProvider` and `ILogger` interfaces.
+This project contains simple implementations of `ILoggerProvider` and `ILogger` interfaces.
 - `TableStorageLoggingProvider`
 - `TableStorageLogger`
 
