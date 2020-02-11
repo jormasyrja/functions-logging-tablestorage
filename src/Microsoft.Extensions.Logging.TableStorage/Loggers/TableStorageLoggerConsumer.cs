@@ -31,13 +31,15 @@ namespace Microsoft.Extensions.Logging.TableStorage.Loggers
                 var bufferCount = 0;
                 var batchOperation = new TableBatchOperation();
 
+                var takeTimeout = TimeSpan.FromMilliseconds(_bufferTimeout.TotalMilliseconds / 10);
+
                 while (!_logEventQueue.IsCompleted)
                 {
                     var eventTaken = false;
                     LogTableEntity logEvent = null;
                     try
                     {
-                        eventTaken = _logEventQueue.TryTake(out logEvent, TimeSpan.FromSeconds(1));
+                        eventTaken = _logEventQueue.TryTake(out logEvent, takeTimeout);
                     }
                     catch (ObjectDisposedException)
                     {
