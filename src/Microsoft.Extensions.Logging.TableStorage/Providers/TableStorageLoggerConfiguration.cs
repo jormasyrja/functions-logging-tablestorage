@@ -47,9 +47,9 @@ namespace Microsoft.Extensions.Logging.TableStorage.Providers
             TableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
             PartitionKeyDateTimeFormat = partitionKeyDateTimeFormat ?? throw new ArgumentNullException(nameof(partitionKeyDateTimeFormat));
 
-            if (logEventBufferTimeoutInSeconds < 1)
+            if (logEventBufferTimeoutInSeconds < 1 || logEventBufferTimeoutInSeconds > Constants.MaxBufferTimeoutInSeconds)
             {
-                throw new ArgumentException($"{nameof(logEventBufferTimeoutInSeconds)} must be greater than zero");
+                throw new ArgumentException($"{nameof(logEventBufferTimeoutInSeconds)} must be greater than zero and less than or equal to {Constants.MaxBufferTimeoutInSeconds}");
             }
             LogEventBufferTimeoutInSeconds = logEventBufferTimeoutInSeconds;
 
