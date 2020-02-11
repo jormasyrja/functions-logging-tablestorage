@@ -26,14 +26,15 @@ namespace Microsoft.Extensions.Logging.TableStorage.Tests.Loggers
         [InlineData(Constants.MaximumBufferSize)]
         public async Task Consume_BufferFull_FlushedToTableStorage(int bufferSize)
         {
-            var consumer = new TableStorageLoggerConsumer(_blockingCollection, _cloudTableMock, int.MaxValue, bufferSize);
+            var consumer = new TableStorageLoggerConsumer(_blockingCollection, _cloudTableMock, 10000, bufferSize);
+            var consumerTask = consumer.Start();
             for (int i = 0; i < bufferSize; i++)
             {
                 _blockingCollection.Add(new LogTableEntity("", "", "", null, "", ""));
             }
             _blockingCollection.CompleteAdding();
 
-            await Task.WhenAny(consumer.Start(), Task.Delay(5000));
+            await Task.WhenAny(consumerTask, Task.Delay(5000));
             await _cloudTableMock.ReceivedWithAnyArgs().ExecuteBatchAsync(default);
         }
 
