@@ -1,7 +1,7 @@
 # Logger provider for Azure Table Storage
 
 This project contains simple implementations of `ILoggerProvider` and `ILogger` interfaces.
-- `TableStorageLoggingProvider`
+- `TableStorageLoggerProvider`
 - `TableStorageLogger`
 
 ## Getting Started
@@ -10,13 +10,14 @@ Using dependency injection provided in `Microsoft.Azure.Functions.Extensions`, a
 ```cs
 public override void Configure(IFunctionsHostBuilder builder)
 {
-    builder.Services.AddSingleton<ILoggerProvider, TableStorageLoggerProvider>( _ => {
-        var connectionString = <your Storage account connection string>
-        var tableName = <name of table to insert log rows>
-        
-        var loggingConfiguration = new TableStorageLoggingConfiguration(connectionString, tablename);
-        return new TableStorageLoggingProvider(loggingConfiguration);
-    });
+    builder.Services.AddSingleton<ILoggerProvider, TableStorageLoggerProvider>(_ =>
+	{
+		var connectionString = <Storage account connection string>;
+		var tableName = <logging table name>;
+
+		var loggingConfiguration = new TableStorageLoggerConfiguration(connectionString, tableName);
+		return new TableStorageLoggerProvider(loggingConfiguration);
+	});
 }
 ```
 
