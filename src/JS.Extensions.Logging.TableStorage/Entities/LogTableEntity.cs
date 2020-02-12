@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Azure.Cosmos.Table;
 
-namespace Microsoft.Extensions.Logging.TableStorage.Entities
+namespace JS.Extensions.Logging.TableStorage.Entities
 {
     internal class LogTableEntity : TableEntity
     {

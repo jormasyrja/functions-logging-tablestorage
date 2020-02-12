@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Logging.TableStorage.Providers;
+﻿using JS.Extensions.Logging.TableStorage.Providers;
 using Xunit;
 
-namespace Microsoft.Extensions.Logging.TableStorage.Tests.Providers
+namespace JS.Extensions.Logging.TableStorage.Tests.Providers
 {
     public class TableStorageLoggerProviderTests
     {

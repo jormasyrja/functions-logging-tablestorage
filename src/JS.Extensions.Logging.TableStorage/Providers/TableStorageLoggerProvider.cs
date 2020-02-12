@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using JS.Extensions.Logging.TableStorage.Entities;
+using JS.Extensions.Logging.TableStorage.Loggers;
 using Microsoft.Azure.Cosmos.Table;
-using Microsoft.Extensions.Logging.TableStorage.Entities;
-using Microsoft.Extensions.Logging.TableStorage.Loggers;
+using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Extensions.Logging.TableStorage.Providers
+namespace JS.Extensions.Logging.TableStorage.Providers
 {
     public class TableStorageLoggerProvider : ILoggerProvider
     {

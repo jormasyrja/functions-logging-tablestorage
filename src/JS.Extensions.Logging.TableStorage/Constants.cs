@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Extensions.Logging.TableStorage
+﻿namespace JS.Extensions.Logging.TableStorage
 {
     internal static class Constants
     {

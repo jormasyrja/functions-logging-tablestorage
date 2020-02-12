@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using JS.Extensions.Logging.TableStorage.Entities;
 using Microsoft.Azure.Cosmos.Table;
-using Microsoft.Extensions.Logging.TableStorage.Entities;
 
-namespace Microsoft.Extensions.Logging.TableStorage.Loggers
+namespace JS.Extensions.Logging.TableStorage.Loggers
 {
     internal class TableStorageLoggerConsumer
     {

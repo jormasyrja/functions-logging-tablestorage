@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microsoft.Extensions.Logging.TableStorage.Providers
+namespace JS.Extensions.Logging.TableStorage.Providers
 {
     public class TableStorageLoggerConfiguration
     {

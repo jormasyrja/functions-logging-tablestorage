@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.Extensions.Logging.TableStorage\Microsoft.Extensions.Logging.TableStorage.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Extensions.Logging.TableStorage\JS.Extensions.Logging.TableStorage.csproj" />
   </ItemGroup>
 
 </Project>

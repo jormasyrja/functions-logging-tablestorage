@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging.TableStorage.Entities;
-using Microsoft.Extensions.Logging.TableStorage.Loggers;
+using JS.Extensions.Logging.TableStorage.Entities;
+using JS.Extensions.Logging.TableStorage.Loggers;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Microsoft.Extensions.Logging.TableStorage.Tests.Loggers
+namespace JS.Extensions.Logging.TableStorage.Tests.Loggers
 {
     public class TableStorageLoggerProducerTests : IDisposable
     {

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging.TableStorage.Entities;
+using JS.Extensions.Logging.TableStorage.Entities;
+using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Extensions.Logging.TableStorage.Loggers
+namespace JS.Extensions.Logging.TableStorage.Loggers
 {
     internal class TableStorageLoggerProducer : ILogger
     {
