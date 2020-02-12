@@ -25,7 +25,8 @@ public override void Configure(IFunctionsHostBuilder builder)
 Set your desired logging levels in host.json : logging.
 
 ### Prerequisites
-- Azure Functions v2/v3
+-  Azure Functions v3
+- .NET Core 3.1
 - `Microsoft.Azure.Functions.Extensions` for dependency injection
 
 ## License
