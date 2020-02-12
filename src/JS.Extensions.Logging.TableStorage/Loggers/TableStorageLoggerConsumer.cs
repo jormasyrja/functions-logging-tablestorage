@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using JS.Extensions.Logging.TableStorage.Entities;
 using Microsoft.Azure.Cosmos.Table;
@@ -29,7 +31,7 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
                 // Now - reference = duration since last flush
                 var referenceTimestamp = DateTime.UtcNow;
                 var bufferCount = 0;
-                var batchOperation = new TableBatchOperation();
+                var operations = new List<TableOperation>();
 
                 var takeTimeout = TimeSpan.FromMilliseconds(_bufferTimeout.TotalMilliseconds / 10);
 
@@ -50,7 +52,7 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
                     if (eventTaken)
                     {
                         bufferCount++;
-                        batchOperation.Add(TableOperation.Insert(logEvent));
+                        operations.Add(TableOperation.Insert(logEvent));
                     }
 
                     if (DateTime.UtcNow - referenceTimestamp >= _bufferTimeout || bufferCount >= _bufferSize)
@@ -62,11 +64,24 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
                                 await _cloudTable.CreateIfNotExistsAsync();
                                 initialized = true;
                             }
-                            await _cloudTable.ExecuteBatchAsync(batchOperation);
-                            batchOperation = new TableBatchOperation();
+
+                            // All operations in a batch must have same partitionKey
+                            var groupedByPartitionKey = operations
+                                .GroupBy(operation => operation.Entity.PartitionKey);
+
+                            foreach (var tableOperations in groupedByPartitionKey)
+                            {
+                                var batchOperation = new TableBatchOperation();
+                                foreach (var operation in tableOperations)
+                                {
+                                    batchOperation.Add(operation);
+                                }
+                                await _cloudTable.ExecuteBatchAsync(batchOperation);
+                            }
                         }
                         referenceTimestamp = DateTime.UtcNow;
                         bufferCount = 0;
+                        operations.Clear();
                     }
                 }
             });
