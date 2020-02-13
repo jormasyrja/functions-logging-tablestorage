@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Description>Logger provider for logging to Table Storage, to be used in Azure Functions</Description>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/jormasyrja/functions-logging-tablestorage</PackageProjectUrl>
     <PackageTags>azure functions table storage logging</PackageTags>
