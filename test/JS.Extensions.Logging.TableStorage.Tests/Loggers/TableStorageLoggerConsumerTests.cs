@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using JS.Extensions.Logging.TableStorage.Entities;
 using JS.Extensions.Logging.TableStorage.Loggers;

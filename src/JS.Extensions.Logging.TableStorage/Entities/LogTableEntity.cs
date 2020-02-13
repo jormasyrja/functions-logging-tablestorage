@@ -18,7 +18,7 @@ namespace JS.Extensions.Logging.TableStorage.Entities
             LogLevel = logLevel;
 
             Exception = exception?.Message;
-            StackTrace = exception?.StackTrace;
+            StackTrace = exception?.ToString();
         }
     }
 }
