@@ -29,7 +29,7 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
             {
                 var initialized = false;
                 // Now - reference = duration since last flush
-                var referenceTimestamp = DateTime.UtcNow;
+                DateTime? referenceTimestamp = null;
                 var bufferCount = 0;
                 var operations = new List<TableOperation>();
 
@@ -51,6 +51,7 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
 
                     if (eventTaken)
                     {
+                        referenceTimestamp = DateTime.UtcNow;
                         bufferCount++;
                         operations.Add(TableOperation.Insert(logEvent));
                     }
@@ -60,29 +61,27 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
                         continue;
                     }
 
-                    if (bufferCount > 0)
+                    if (!initialized)
                     {
-                        if (!initialized)
-                        {
-                            await _cloudTable.CreateIfNotExistsAsync();
-                            initialized = true;
-                        }
-
-                        // All operations in a batch must have same partitionKey
-                        var groupedByPartitionKey = operations
-                            .GroupBy(operation => operation.Entity.PartitionKey);
-
-                        foreach (var tableOperations in groupedByPartitionKey)
-                        {
-                            var batchOperation = new TableBatchOperation();
-                            foreach (var operation in tableOperations)
-                            {
-                                batchOperation.Add(operation);
-                            }
-                            await _cloudTable.ExecuteBatchAsync(batchOperation);
-                        }
+                        await _cloudTable.CreateIfNotExistsAsync();
+                        initialized = true;
                     }
-                    referenceTimestamp = DateTime.UtcNow;
+
+                    // All operations in a batch must have same partitionKey
+                    var groupedByPartitionKey = operations
+                        .GroupBy(operation => operation.Entity.PartitionKey);
+
+                    foreach (var tableOperations in groupedByPartitionKey)
+                    {
+                        var batchOperation = new TableBatchOperation();
+                        foreach (var operation in tableOperations)
+                        {
+                            batchOperation.Add(operation);
+                        }
+                        await _cloudTable.ExecuteBatchAsync(batchOperation);
+                    }
+                    
+                    referenceTimestamp = null;
                     bufferCount = 0;
                     operations.Clear();
                 }
