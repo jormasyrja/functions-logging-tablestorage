@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using JS.Extensions.Logging.TableStorage.Entities;
 using JS.Extensions.Logging.TableStorage.Loggers;
-using Microsoft.Azure.Cosmos.Table;
 using NSubstitute;
 using Xunit;
 
@@ -12,12 +12,12 @@ namespace JS.Extensions.Logging.TableStorage.Tests.Loggers
     public class TableStorageLoggerConsumerTests : IDisposable
     {
         private readonly BlockingCollection<LogTableEntity> _blockingCollection;
-        private readonly CloudTable _cloudTableMock;
+        private readonly TableClient _tableClientMock;
 
         public TableStorageLoggerConsumerTests()
         {
             _blockingCollection = new BlockingCollection<LogTableEntity>();
-            _cloudTableMock = Substitute.For<CloudTable>(new Uri("https://www.test.com"), null);
+            _tableClientMock = Substitute.For<TableClient>("UseDevelopmentStorage=true", "Test");
         }
 
         [Theory]
@@ -26,7 +26,7 @@ namespace JS.Extensions.Logging.TableStorage.Tests.Loggers
         [InlineData(Constants.MaximumBufferSize)]
         public async Task Consume_BufferFull_FlushedToTableStorage(int bufferSize)
         {
-            var consumer = new TableStorageLoggerConsumer(_blockingCollection, _cloudTableMock, 10000, bufferSize);
+            var consumer = new TableStorageLoggerConsumer(_blockingCollection, _tableClientMock, 10000, bufferSize);
             var consumerTask = consumer.Start();
             for (int i = 0; i < bufferSize; i++)
             {
@@ -35,7 +35,7 @@ namespace JS.Extensions.Logging.TableStorage.Tests.Loggers
             _blockingCollection.CompleteAdding();
 
             await Task.WhenAny(consumerTask, Task.Delay(5000));
-            await _cloudTableMock.ReceivedWithAnyArgs().ExecuteBatchAsync(default);
+            await _tableClientMock.ReceivedWithAnyArgs().SubmitTransactionAsync(default);
         }
 
         [Theory]
@@ -44,7 +44,7 @@ namespace JS.Extensions.Logging.TableStorage.Tests.Loggers
         [InlineData(10)]
         public async Task Consume_MultiplePartitionKeys_OneCallForEachUniquePartitionKey(int items)
         {
-            var consumer = new TableStorageLoggerConsumer(_blockingCollection, _cloudTableMock, 10000, items);
+            var consumer = new TableStorageLoggerConsumer(_blockingCollection, _tableClientMock, 10000, items);
             var consumerTask = consumer.Start();
             for (int i = 0; i < items; i++)
             {
@@ -53,7 +53,7 @@ namespace JS.Extensions.Logging.TableStorage.Tests.Loggers
             _blockingCollection.CompleteAdding();
 
             await Task.WhenAny(consumerTask, Task.Delay(5000));
-            await _cloudTableMock.ReceivedWithAnyArgs(items).ExecuteBatchAsync(default);
+            await _tableClientMock.ReceivedWithAnyArgs(items).SubmitTransactionAsync(default);
         }
 
         public void Dispose()

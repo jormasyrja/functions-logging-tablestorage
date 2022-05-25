@@ -3,37 +3,37 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using JS.Extensions.Logging.TableStorage.Entities;
-using Microsoft.Azure.Cosmos.Table;
 
 namespace JS.Extensions.Logging.TableStorage.Loggers
 {
     internal class TableStorageLoggerConsumer
     {
         private readonly BlockingCollection<LogTableEntity> _logEventQueue;
-        private readonly CloudTable _cloudTable;
+        private readonly TableClient _tableClient;
         private readonly TimeSpan _bufferTimeout;
         private readonly int _bufferSize;
 
-        public TableStorageLoggerConsumer(BlockingCollection<LogTableEntity> logEventQueue, CloudTable cloudTable, int bufferTimeoutInSeconds, int bufferSize)
+        public TableStorageLoggerConsumer(BlockingCollection<LogTableEntity> logEventQueue, TableClient tableClient, int bufferTimeoutInSeconds, int bufferSize)
         {
             _logEventQueue = logEventQueue;
-            _cloudTable = cloudTable;
+            _tableClient = tableClient;
             _bufferTimeout = TimeSpan.FromSeconds(bufferTimeoutInSeconds);
             _bufferSize = bufferSize;
         }
 
         public Task Start()
         {
-            return Task.Run(async () =>
+            return Task.Factory.StartNew(async () =>
             {
                 var initialized = false;
                 // Now - reference = duration since last flush
                 DateTime? referenceTimestamp = null;
                 var bufferCount = 0;
-                var operations = new List<TableOperation>();
 
                 var takeTimeout = TimeSpan.FromMilliseconds(_bufferTimeout.TotalMilliseconds / 10);
+                var entitiesToInsert = new List<LogTableEntity>();
 
                 while (!_logEventQueue.IsCompleted)
                 {
@@ -53,7 +53,8 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
                     {
                         referenceTimestamp = DateTime.UtcNow;
                         bufferCount++;
-                        operations.Add(TableOperation.Insert(logEvent));
+
+                        entitiesToInsert.Add(logEvent);
                     }
 
                     if (DateTime.UtcNow - referenceTimestamp < _bufferTimeout && bufferCount < _bufferSize)
@@ -63,29 +64,27 @@ namespace JS.Extensions.Logging.TableStorage.Loggers
 
                     if (!initialized)
                     {
-                        await _cloudTable.CreateIfNotExistsAsync();
+                        await _tableClient.CreateIfNotExistsAsync();
                         initialized = true;
                     }
 
                     // All operations in a batch must have same partitionKey
-                    var groupedByPartitionKey = operations
-                        .GroupBy(operation => operation.Entity.PartitionKey);
+                    var groupedByPartitionKey = entitiesToInsert
+                        .GroupBy(entity => entity.PartitionKey);
 
-                    foreach (var tableOperations in groupedByPartitionKey)
+                    foreach (var entities in groupedByPartitionKey)
                     {
-                        var batchOperation = new TableBatchOperation();
-                        foreach (var operation in tableOperations)
-                        {
-                            batchOperation.Add(operation);
-                        }
-                        await _cloudTable.ExecuteBatchAsync(batchOperation);
+                        var addEntitiesBatch = new List<TableTransactionAction>();
+                        addEntitiesBatch.AddRange(entities.Select(entity => new TableTransactionAction(TableTransactionActionType.Add, entity)));
+
+                        await _tableClient.SubmitTransactionAsync(addEntitiesBatch);
                     }
                     
                     referenceTimestamp = null;
                     bufferCount = 0;
-                    operations.Clear();
+                    entitiesToInsert.Clear();
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
         }
     }
 }

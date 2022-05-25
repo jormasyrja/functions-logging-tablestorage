@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using Azure.Data.Tables;
 using JS.Extensions.Logging.TableStorage.Entities;
 using JS.Extensions.Logging.TableStorage.Loggers;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 
 namespace JS.Extensions.Logging.TableStorage.Providers
@@ -23,11 +23,8 @@ namespace JS.Extensions.Logging.TableStorage.Providers
             _loggers = new ConcurrentDictionary<string, ILogger>();
             _logEventQueue = new BlockingCollection<LogTableEntity>(Constants.MaximumBufferSize);
 
-            var cloudAccount = CloudStorageAccount.Parse(configuration.ConnectionString);
-            var cloudTableClient = cloudAccount.CreateCloudTableClient();
-            var loggingTableReference = cloudTableClient.GetTableReference(configuration.TableName);
-
-            var consumer = new TableStorageLoggerConsumer(_logEventQueue, loggingTableReference, _configuration.LogEventBufferTimeoutInSeconds, _configuration.LogEventBufferSize);
+            var tableClient = new TableClient(_configuration.ConnectionString, _configuration.TableName);
+            var consumer = new TableStorageLoggerConsumer(_logEventQueue, tableClient, _configuration.LogEventBufferTimeoutInSeconds, _configuration.LogEventBufferSize);
             consumer.Start();
         }
 
